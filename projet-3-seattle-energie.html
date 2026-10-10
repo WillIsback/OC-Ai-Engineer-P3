@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Projet 3 — Prédire la consommation d'énergie des bâtiments</title>
+  <style>
+    :root {
+      --text:#2C2C2B; --muted:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7; --surface:#F0EFED; --border:#E6E5E3;
+      --blue:#2783DE; --blue-soft:#E5F2FC; --green:#46A171; --green-soft:#E8F1EC; --orange:#D5803B; --orange-soft:#FBEBDE;
+      --red:#E56458; --red-soft:#FCE9E7; --shadow:0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.05);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin:0; font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color:var(--text); background:linear-gradient(180deg, #fff 0%, var(--soft) 100%); }
+    a { color:var(--blue); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .wrap { width:min(1120px, calc(100% - 48px)); margin:0 auto; }
+    header { padding:32px 0 18px; }
+    .hero { display:grid; grid-template-columns: 1.15fr .85fr; gap:24px; align-items:stretch; }
+    .hero-card, .panel { border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,.88); box-shadow:var(--shadow); }
+    .hero-card { padding:32px; min-height:312px; position:relative; overflow:hidden; }
+    .hero-card::after { content:""; position:absolute; right:-110px; top:-110px; width:270px; height:270px; background:radial-gradient(circle, var(--blue-soft) 0 58%, transparent 59%); opacity:.9; }
+    .eyebrow { display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border:1px solid var(--border); border-radius:999px; color:var(--muted); background:#fff; font-size:14px; margin-bottom:18px; }
+    .dot { width:8px; height:8px; border-radius:50%; background:var(--green); }
+    h1 { margin:0 0 12px; font-size:clamp(30px, 4.5vw, 56px); line-height:1.03; letter-spacing:-.04em; max-width:780px; }
+    .lead { font-size:18px; color:var(--muted); max-width:720px; margin:0 0 24px; }
+    .chips { display:flex; flex-wrap:wrap; gap:10px; }
+    .chip { display:inline-flex; align-items:center; gap:8px; padding:9px 12px; border-radius:12px; background:var(--soft); border:1px solid var(--border); font-size:14px; }
+    .mission-box { padding:24px; display:flex; flex-direction:column; justify-content:space-between; }
+    .metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:18px; }
+    .metric { padding:14px; border-radius:12px; background:var(--soft); border:1px solid var(--border); }
+    .metric b { display:block; font-size:22px; line-height:1.1; }
+    .metric span { color:var(--muted); font-size:13px; }
+    section { padding:18px 0; }
+    .section-title { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin:8px 0 14px; }
+    h2 { margin:0; font-size:28px; letter-spacing:-.02em; }
+    .section-title p { margin:0; color:var(--muted); max-width:580px; }
+    .grid-3 { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+    .card { padding:20px; border:1px solid var(--border); border-radius:14px; background:#fff; }
+    .icon { width:38px; height:38px; display:grid; place-items:center; border-radius:10px; margin-bottom:14px; font-size:20px; }
+    .blue { background:var(--blue-soft); color:var(--blue); } .green { background:var(--green-soft); color:var(--green); } .orange { background:var(--orange-soft); color:var(--orange); } .red { background:var(--red-soft); color:var(--red); }
+    h3 { margin:0 0 8px; font-size:18px; }
+    .card p, .card li { color:var(--muted); }
+    .card p { margin:0; }
+    .timeline { display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; counter-reset:step; }
+    .step { padding:16px; border:1px solid var(--border); border-radius:14px; background:#fff; position:relative; min-height:150px; }
+    .step::before { counter-increment:step; content:counter(step); display:grid; place-items:center; width:28px; height:28px; border-radius:9px; background:var(--blue); color:#fff; font-weight:700; margin-bottom:12px; }
+    .step b { display:block; margin-bottom:6px; }
+    .step span { display:block; color:var(--muted); font-size:14px; }
+    .two-col { display:grid; grid-template-columns:.95fr 1.05fr; gap:16px; }
+    .checklist { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:10px; }
+    .checklist li { display:flex; gap:10px; align-items:flex-start; color:var(--text); }
+    .checkmark { flex:0 0 22px; height:22px; border-radius:7px; display:grid; place-items:center; background:var(--green-soft); color:var(--green); font-weight:800; font-size:13px; }
+    .deliverables { display:grid; gap:10px; }
+    .deliverable { display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--soft); }
+    .tag { font-size:12px; padding:4px 8px; border-radius:999px; background:#fff; border:1px solid var(--border); color:var(--muted); white-space:nowrap; }
+    .resources { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .resource { padding:10px 12px; border:1px solid var(--border); background:#fff; border-radius:12px; font-weight:600; }
+    footer { padding:22px 0 40px; color:var(--muted); font-size:14px; }
+    @media (max-width: 860px) { .hero, .two-col, .grid-3 { grid-template-columns:1fr; } .timeline { grid-template-columns:1fr 1fr; } .hero-card { min-height:auto; } }
+    @media (max-width: 560px) { .wrap { width:min(100% - 32px, 1120px); } header { padding-top:20px; } .hero-card, .mission-box { padding:22px; } .timeline, .metric-grid { grid-template-columns:1fr; } .section-title { display:block; } .section-title p { margin-top:8px; } }
+    @media (prefers-color-scheme: dark) {
+      :root { --text:#fff; --muted:rgba(255,255,255,.65); --canvas:#191919; --soft:#202020; --surface:#383836; --border:rgba(255,255,255,.20); --blue:#5E9FE8; --green:#72BC8F; --orange:#DE9255; --red:#E97366; --blue-soft:rgba(94,159,232,.13); --green-soft:rgba(114,188,143,.13); --orange-soft:rgba(222,146,85,.13); --red-soft:rgba(233,115,102,.13); }
+      body { background:linear-gradient(180deg, #191919 0%, #202020 100%); }
+      .hero-card, .panel, .card, .step { background:rgba(32,32,32,.92); } .eyebrow, .resource, .tag { background:#202020; } .chip, .metric, .deliverable { background:#202020; }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <div class="hero">
+      <div class="hero-card">
+        <div class="eyebrow"><span class="dot"></span>OpenClassrooms — AI Engineer · Projet 3</div>
+        <h1>Prédire la consommation d'énergie des bâtiments de Seattle</h1>
+        <p class="lead">Une mission de data science supervisée pour estimer la consommation énergétique et les émissions de CO₂ des bâtiments non résidentiels, à partir de leurs caractéristiques structurelles.</p>
+        <div class="chips" aria-label="Axes du projet">
+          <span class="chip">🏙️ Ville de Seattle</span>
+          <span class="chip">⚡ Énergie totale</span>
+          <span class="chip">🌿 Émissions CO₂</span>
+          <span class="chip">🤖 Modélisation supervisée</span>
+        </div>
+      </div>
+      <aside class="panel mission-box" aria-label="Résumé de mission">
+        <div>
+          <h2>Objectif</h2>
+          <p class="lead" style="font-size:16px;margin-bottom:0">Réduire le coût des relevés terrain en construisant un modèle prédictif fiable pour les bâtiments dont les mesures ne sont pas encore disponibles.</p>
+        </div>
+        <div class="metric-grid">
+          <div class="metric"><b>2016</b><span>campagne de relevés</span></div>
+          <div class="metric"><b>2050</b><span>neutralité carbone visée</span></div>
+          <div class="metric"><b>2</b><span>cibles à prédire</span></div>
+          <div class="metric"><b>1</b><span>notebook de restitution</span></div>
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <div class="section-title">
+        <h2>Comprendre le scénario</h2>
+        <p>Le projet se place dans un contexte professionnel : reprendre une mission prioritaire préparée par Léa, sous la coordination de Douglas.</p>
+      </div>
+      <div class="grid-3">
+        <article class="card"><div class="icon blue">📌</div><h3>Contexte métier</h3><p>Identifier les bâtiments les plus énergivores et soutenir la stratégie climat de Seattle.</p></article>
+        <article class="card"><div class="icon green">🧱</div><h3>Données d'entrée</h3><p>Taille, usage, année de construction, localisation et autres caractéristiques structurelles.</p></article>
+        <article class="card"><div class="icon orange">🎯</div><h3>Prédictions</h3><p>Estimer la consommation totale d'énergie et les émissions de CO₂.</p></article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>Démarche recommandée</h2>
+        <p>Un fil conducteur clair pour transformer le scénario en livrables évaluables.</p>
+      </div>
+      <div class="timeline" aria-label="Étapes du projet">
+        <div class="step"><b>Cadrage</b><span>Lire la mission, noter les attentes, préparer les questions de mentorat.</span></div>
+        <div class="step"><b>Exploration</b><span>Nettoyer les données, analyser les distributions, valeurs manquantes et outliers.</span></div>
+        <div class="step"><b>Feature engineering</b><span>Créer des variables pertinentes : âge du bâtiment, typologie, ratios de surface.</span></div>
+        <div class="step"><b>Modèles</b><span>Comparer plusieurs algorithmes supervisés avec validation croisée.</span></div>
+        <div class="step"><b>Interprétation</b><span>Expliquer les facteurs clés et documenter les limites du modèle retenu.</span></div>
+      </div>
+    </section>
+
+    <section class="two-col">
+      <article class="card">
+        <div class="icon green">✅</div>
+        <h2>Livrables attendus</h2>
+        <div class="deliverables" style="margin-top:14px">
+          <div class="deliverable"><span class="tag">EDA</span><div><b>Analyse exploratoire courte</b><br><span style="color:var(--muted)">Insights clés sur les bâtiments et variables influentes.</span></div></div>
+          <div class="deliverable"><span class="tag">ML</span><div><b>Tests de modèles supervisés</b><br><span style="color:var(--muted)">Régression linéaire, modèles régularisés, forêts, boosting, etc.</span></div></div>
+          <div class="deliverable"><span class="tag">Explain</span><div><b>Facteurs principaux</b><br><span style="color:var(--muted)">Importance des variables et justification du modèle sélectionné.</span></div></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="icon red">⚠️</div>
+        <h2>Points de vigilance</h2>
+        <ul class="checklist">
+          <li><span class="checkmark">✓</span><span>Éviter les fuites de données : ne pas utiliser les variables directement liées aux cibles.</span></li>
+          <li><span class="checkmark">✓</span><span>Traiter les valeurs extrêmes sans supprimer aveuglément des bâtiments atypiques.</span></li>
+          <li><span class="checkmark">✓</span><span>Comparer les modèles avec des métriques adaptées : RMSE, MAE et score R².</span></li>
+          <li><span class="checkmark">✓</span><span>Documenter clairement les choix pour rendre le notebook reproductible.</span></li>
+        </ul>
+      </article>
+    </section>
+
+    <section>
+      <article class="card">
+        <div class="section-title" style="margin:0">
+          <div><div class="icon blue">🔗</div><h2>Ressources utiles</h2></div>
+          <p>Données, source officielle et notebook de travail à garder sous la main.</p>
+        </div>
+        <div class="resources">
+          <a class="resource" href="https://s3.eu-west-1.amazonaws.com/course.oc-static.com/projects/Data_Scientist_P4/2016_Building_Energy_Benchmarking.csv" target="_blank" rel="noreferrer">CSV 2016</a>
+          <a class="resource" href="https://data.seattle.gov/Built-Environment/Building-Energy-Benchmarking-Data-2015-Present/teqw-tu6e/about_data" target="_blank" rel="noreferrer">Source Seattle</a>
+          <a class="resource" href="https://s3.eu-west-1.amazonaws.com/course.oc-static.com/projects/1047_Data+Scientist+ML/P3_DSML_1047/P3_template_modelistation_supervisee_data_scientist.ipynb" target="_blank" rel="noreferrer">Template notebook</a>
+          <a class="resource" href="https://colab.research.google.com/drive/1sy3lmD6vqKLnZnBXx2JGhqNAKMDvrGsE?usp=sharing" target="_blank" rel="noreferrer">Google Colab</a>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="wrap">Sous-page HTML de cadrage — Projet 3 Formation OpenClassrooms AI Engineer.</footer>
+</body>
+</html>
